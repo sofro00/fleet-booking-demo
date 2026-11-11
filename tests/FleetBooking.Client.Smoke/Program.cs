@@ -32,12 +32,14 @@ internal static class Program
         var tabs = (TabControl)window.FindName("MainTabs");
         tabs.SelectedIndex = 1;
         var grid = (DataGrid)window.FindName("VehiclesGrid");
-        var states = new[] { VehicleStates.Free, VehicleStates.Reserved, VehicleStates.Service, VehicleStates.Assigned };
-        var models = new[] { "Toyota Corolla", "Škoda Octavia", "Ford Transit", "Renault Clio" };
+        var states = new[] { VehicleStates.Free, VehicleStates.Reserved, VehicleStates.Assigned, VehicleStates.Service, VehicleStates.Inactive };
+        var models = new[] { "Toyota Corolla", "Škoda Octavia", "Renault Clio", "Ford Transit", "Volkswagen Golf" };
+        var images = new[] { "toyota-corolla.png", "skoda-octavia.png", "renault-clio.png", "ford-transit.png", "volkswagen-golf.png" };
         grid.ItemsSource = states.Select((state, i) => new VehicleDisplayRow(new VehicleDto(Guid.NewGuid(),
-            models[i], $"DEMO-{i + 1:000}", 5, "Dizel", "Demo centar", true, null,
+            models[i], $"DEMO-{i + 1:000}", i == 3 ? 3 : 5, i == 0 ? "Hibrid" : i == 2 || i == 4 ? "Benzin" : "Dizel", "Demo centar", state != VehicleStates.Inactive, null,
+            HasImage: true, ImageUpdatedUtc: DateTime.UtcNow,
             AssignedUserName: state == VehicleStates.Assigned ? "Ana Demo" : null, StatusCode: state,
-            HasReservation: state == VehicleStates.Reserved), null)).ToList();
+            HasReservation: state == VehicleStates.Reserved), LoadDemoImage(images[i]))).ToList();
         var root = (FrameworkElement)window.Content;
         ((Panel)root).Background = (Brush)app.FindResource("Canvas");
         window.Content = null;
@@ -56,6 +58,8 @@ internal static class Program
         {
             if (grid.ItemContainerGenerator.ContainerFromIndex(i) is not DataGridRow)
                 throw new InvalidOperationException("Red vozila nije renderovan.");
+            if (((VehicleDisplayRow)grid.Items[i]).Image is not BitmapSource image || image.PixelWidth < 1)
+                throw new InvalidOperationException("Demo slika vozila nije učitana.");
         }
         var output = Path.GetFullPath(args.FirstOrDefault() ?? "artifacts/client-v2.8-smoke.png");
         Directory.CreateDirectory(Path.GetDirectoryName(output)!);
@@ -64,7 +68,7 @@ internal static class Program
         var encoder = new PngBitmapEncoder();
         encoder.Frames.Add(BitmapFrame.Create(bitmap));
         using (var stream = File.Create(output)) encoder.Save(stream);
-        Console.WriteLine("WPF smoke: OK; 4 statusa i 8 kolona. Slika: " + output);
+        Console.WriteLine("WPF smoke: OK; 5 vozila sa slikama, 5 statusa i 8 kolona. Slika: " + output);
         VerifyReservationEditor(Path.GetDirectoryName(output)!);
         PreferencesChecks.Run(Path.GetDirectoryName(output)!);
         UsersTableChecks.Run(Path.GetDirectoryName(output)!);
@@ -72,6 +76,20 @@ internal static class Program
         VehicleIssueChecks.Run(Path.GetDirectoryName(output)!);
         window.Close();
         app.Shutdown();
+    }
+
+    private static BitmapImage LoadDemoImage(string file)
+    {
+        using var stream = Assembly.GetExecutingAssembly().GetManifestResourceStream("FleetBooking.SmokeVehicles." + file)
+            ?? throw new InvalidOperationException("Nedostaje demo slika vozila.");
+        var image = new BitmapImage();
+        image.BeginInit();
+        image.CacheOption = BitmapCacheOption.OnLoad;
+        image.DecodePixelWidth = 240;
+        image.StreamSource = stream;
+        image.EndInit();
+        image.Freeze();
+        return image;
     }
 
     private static void VerifyReservationEditor(string outputDirectory)

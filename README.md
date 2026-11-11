@@ -15,7 +15,7 @@ The screenshot is rendered from the WPF controls with synthetic layout fixtures;
 - Booking creation, changes and cancellation with retained history.
 - Assigned vehicles, maintenance periods, vehicle issues and an audit trail.
 - Optional encrypted local session storage and personal table preferences.
-- Demo data: three accounts, five vehicles, five bookings, one maintenance period and one vehicle issue.
+- Demo data: three accounts, five vehicles with bundled illustrations, five bookings, one maintenance period and one vehicle issue.
 
 The interface is in Montenegrin. This edition contains the Windows client, API and tests; mobile clients and production deployment scripts are outside its scope.
 
@@ -44,6 +44,8 @@ The launcher builds the solution, starts the API on `https://localhost:58443/`, 
 | `luka@example.com` | Employee |
 
 The initial password is shared by these fictional demo accounts only. It is never included in the public package. Existing data and password hashes remain unchanged on subsequent starts. Bookings are seeded relative to the first run date; they do not move forward every day.
+
+All five vehicle illustrations are bundled in the API, so no external image service is required. Restarting an older demo installation adds missing images to its original demo vehicles. Existing custom images, accounts and bookings are preserved. These are AI-generated illustrations with blank plates, not photographs of business vehicles. See [image provenance and prompts](docs/IMAGES.md).
 
 For API-only use, add `-NoClient` to the PowerShell command and press Ctrl+C when finished. API startup logs remain in the ignored `.local` folder. Desktop sessions and preferences live in `.local/client` beside the client executable.
 

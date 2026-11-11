@@ -17,7 +17,14 @@ ROOT = Path(__file__).resolve().parent.parent
 MANIFEST = 'PUBLIC_FILES.txt'
 LOCAL_OUTPUTS = {'.git', '.local', '.vs', '.vscode', 'bin', 'obj', 'TestResults', 'artifacts', '__pycache__'}
 TEXT_EXTENSIONS = {'.cs', '.csproj', '.xaml', '.sln', '.slnx', '.json', '.md', '.ps1', '.py', '.cmd', '.txt', '.yml', '.yaml'}
-REVIEWED_IMAGES = {'docs/screenshots/vehicles.png'}
+REVIEWED_IMAGES = {
+    'docs/screenshots/vehicles.png',
+    'src/FleetBooking.Api/Assets/Vehicles/toyota-corolla.png',
+    'src/FleetBooking.Api/Assets/Vehicles/skoda-octavia.png',
+    'src/FleetBooking.Api/Assets/Vehicles/renault-clio.png',
+    'src/FleetBooking.Api/Assets/Vehicles/ford-transit.png',
+    'src/FleetBooking.Api/Assets/Vehicles/volkswagen-golf.png',
+}
 EMAIL = re.compile(r'[A-Za-z0-9._%+\-]+@([A-Za-z0-9.\-]+\.[A-Za-z]{2,})')
 IP = re.compile(r'(?<![\d.])(?:\d{1,3}\.){3}\d{1,3}(?![\d.])')
 ORIGINAL_BRAND = re.compile(r'\b' + 'b' + r'ds(?:vozila|\.me|_|vehicle|backuptest)|sport\s*vision', re.I)

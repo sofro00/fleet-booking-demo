@@ -78,11 +78,51 @@ public sealed class DemoIsolationTests
             Assert.Null(user.Phone);
             Assert.Equal(PasswordVerificationResult.Success, hasher.VerifyHashedPassword(user, user.PasswordHash, password));
         });
-        Assert.All(await db.Vehicles.ToListAsync(), vehicle => Assert.True(DemoSafety.IsDemoRegistration(vehicle.Registration)));
+        Assert.All(await db.Vehicles.ToListAsync(), vehicle =>
+        {
+            Assert.True(DemoSafety.IsDemoRegistration(vehicle.Registration));
+            Assert.NotNull(vehicle.ImageContent);
+            Assert.Equal("image/png", vehicle.ImageContentType);
+            Assert.NotNull(vehicle.ImageUpdatedUtc);
+            Assert.InRange(vehicle.ImageContent!.Length, 8, 3 * 1024 * 1024);
+        });
         Assert.All(await db.Reservations.ToListAsync(), reservation => Assert.Equal("", reservation.ContactPhone));
         var hashes = await db.Users.OrderBy(user => user.Email).Select(user => user.PasswordHash).ToListAsync();
         await DemoSeeder.SeedAsync(db, hasher, "unused");
         Assert.Equal(hashes, await db.Users.OrderBy(user => user.Email).Select(user => user.PasswordHash).ToListAsync());
+        Assert.Equal(5, await db.Reservations.CountAsync());
+    }
+
+    [Fact]
+    public async Task Existing_demo_gets_missing_images_without_reseeding_or_overwriting_custom_images()
+    {
+        await using var db = new AppDbContext(new DbContextOptionsBuilder<AppDbContext>()
+            .UseInMemoryDatabase(Guid.NewGuid().ToString()).Options);
+        var hasher = new PasswordHasher<AppUser>();
+        var password = "Demo!" + Convert.ToBase64String(RandomNumberGenerator.GetBytes(24)) + "a1";
+        await DemoSeeder.SeedAsync(db, hasher, password);
+        var vehicles = await db.Vehicles.OrderBy(vehicle => vehicle.Registration).ToListAsync();
+        vehicles[0].ImageContent = null;
+        vehicles[0].ImageContentType = null;
+        vehicles[0].ImageUpdatedUtc = null;
+        vehicles[1].ImageContent = [];
+        byte[] custom = [1, 2, 3, 4];
+        var customUpdated = DateTime.UtcNow.AddDays(-2);
+        vehicles[2].ImageContent = custom;
+        vehicles[2].ImageUpdatedUtc = customUpdated;
+        var originalHashes = await db.Users.OrderBy(user => user.Email).Select(user => user.PasswordHash).ToListAsync();
+        await db.SaveChangesAsync();
+
+        await DemoSeeder.SeedAsync(db, hasher, null);
+        Assert.NotEmpty(vehicles[0].ImageContent!);
+        Assert.NotEmpty(vehicles[1].ImageContent!);
+        Assert.Equal("image/png", vehicles[0].ImageContentType);
+        Assert.NotNull(vehicles[0].ImageUpdatedUtc);
+        Assert.Equal(custom, vehicles[2].ImageContent);
+        Assert.Equal(customUpdated, vehicles[2].ImageUpdatedUtc);
+        Assert.Equal(originalHashes, await db.Users.OrderBy(user => user.Email).Select(user => user.PasswordHash).ToListAsync());
+        Assert.Equal(3, await db.Users.CountAsync());
+        Assert.Equal(5, await db.Vehicles.CountAsync());
         Assert.Equal(5, await db.Reservations.CountAsync());
     }
 }

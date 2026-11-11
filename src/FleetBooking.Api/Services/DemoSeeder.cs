@@ -10,7 +10,11 @@ public static class DemoSeeder
 {
     public static async Task SeedAsync(AppDbContext db, IPasswordHasher<AppUser> hasher, string? password)
     {
-        if (await db.Users.AnyAsync()) return;
+        if (await db.Users.AnyAsync())
+        {
+            await DemoVehicleImages.AddMissingAsync(db);
+            return;
+        }
         if (!PasswordPolicy.IsValid(password ?? ""))
             throw new InvalidOperationException("Run scripts/Start-Demo.ps1 to generate local demo credentials.");
 
@@ -40,6 +44,7 @@ public static class DemoSeeder
             Purpose = purpose, Destination = destination, DepartureLocation = "Podgorica", ContactPhone = "",
             PassengerCount = 1, Note = "Izmišljena demo rezervacija."
         };
+        foreach (var vehicle in vehicles) DemoVehicleImages.ApplyIfMissing(vehicle);
         db.Users.AddRange(admin, ana, luka);
         db.Vehicles.AddRange(vehicles);
         db.Reservations.AddRange(
