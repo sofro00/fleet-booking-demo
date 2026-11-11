@@ -1,0 +1,43 @@
+<Window x:Class="FleetBooking.Client.ReservationEditorWindow" xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" Width="700" MaxHeight="860" SizeToContent="Height" WindowStartupLocation="CenterOwner" Background="{StaticResource Canvas}" ResizeMode="NoResize">
+  <ScrollViewer VerticalScrollBarVisibility="Auto">
+    <Border Style="{StaticResource Card}" Margin="18" Padding="26">
+      <StackPanel>
+        <TextBlock x:Name="TitleText" FontSize="24" FontWeight="SemiBold" Foreground="{StaticResource Navy}"/>
+        <TextBlock Text="Polja označena zvjezdicom su obavezna." Foreground="#667085" Margin="0,4,0,14"/>
+        <Border x:Name="SummaryPanel" Background="#FFFDEBEC" BorderBrush="#FFF2B8BD" BorderThickness="1" CornerRadius="5" Padding="10" Margin="0,0,0,10" Visibility="Collapsed">
+          <TextBlock x:Name="SummaryError" Foreground="#A5121D" TextWrapping="Wrap"/>
+        </Border>
+
+        <TextBlock Text="Zaposleni" FontWeight="Medium"/><TextBox x:Name="EmployeeBox" IsReadOnly="True" IsTabStop="False" Background="#F2F4F7"/>
+
+        <TextBlock Text="Vozilo *" FontWeight="Medium" Margin="4,8,4,0"/>
+        <ComboBox x:Name="VehicleBox" MinHeight="38" DisplayMemberPath="DisplayName" SelectionChanged="VehicleBox_SelectionChanged"/>
+        <TextBlock x:Name="VehicleError" Foreground="Firebrick" FontSize="12" Margin="6,0,0,2"/>
+        <TextBlock x:Name="CapacityText" Foreground="#667085" Margin="6,0,0,6"/>
+
+        <Grid Margin="0,4,0,0"><Grid.ColumnDefinitions><ColumnDefinition/><ColumnDefinition/></Grid.ColumnDefinitions>
+          <StackPanel Margin="0,0,8,0"><TextBlock Text="Preuzimanje *" FontWeight="Medium" Margin="4,0"/><Grid><Grid.ColumnDefinitions><ColumnDefinition/><ColumnDefinition Width="118"/></Grid.ColumnDefinitions><DatePicker x:Name="StartDate" SelectedDateChanged="Period_Changed"/><ComboBox x:Name="StartTime" Grid.Column="1" SelectionChanged="Period_Changed"/></Grid><TextBlock x:Name="StartError" Foreground="Firebrick" FontSize="12" Margin="6,0,0,2"/></StackPanel>
+          <StackPanel Grid.Column="1" Margin="8,0,0,0"><TextBlock Text="Vraćanje *" FontWeight="Medium" Margin="4,0"/><Grid><Grid.ColumnDefinitions><ColumnDefinition/><ColumnDefinition Width="118"/></Grid.ColumnDefinitions><DatePicker x:Name="EndDate" SelectedDateChanged="Period_Changed"/><ComboBox x:Name="EndTime" Grid.Column="1" SelectionChanged="Period_Changed"/></Grid><TextBlock x:Name="EndError" Foreground="Firebrick" FontSize="12" Margin="6,0,0,2"/></StackPanel>
+        </Grid>
+        <Border Background="#EEF4F7" CornerRadius="5" Padding="10" Margin="4,4,4,10"><TextBlock x:Name="DurationText" Foreground="#344054" FontWeight="SemiBold"/></Border>
+
+        <Grid><Grid.ColumnDefinitions><ColumnDefinition/><ColumnDefinition/></Grid.ColumnDefinitions>
+          <StackPanel Margin="0,0,8,0"><TextBlock Text="Svrha puta *" FontWeight="Medium" Margin="4,4,4,0"/><ComboBox x:Name="PurposeBox" IsTextSearchEnabled="True" MaxDropDownHeight="300" ToolTip="Izaberite svrhu puta. Dodatne detalje možete unijeti u napomenu."/><TextBlock x:Name="PurposeError" Foreground="Firebrick" FontSize="12" Margin="6,0,0,2"/></StackPanel>
+          <StackPanel Grid.Column="1" Margin="8,0,0,0"><TextBlock Text="Odredište / lokacija puta *" FontWeight="Medium" Margin="4,4,4,0"/><ComboBox x:Name="DestinationBox" IsTextSearchEnabled="True" MaxDropDownHeight="300"/><TextBlock x:Name="DestinationError" Foreground="Firebrick" FontSize="12" Margin="6,0,0,2"/></StackPanel>
+        </Grid>
+        <Grid><Grid.ColumnDefinitions><ColumnDefinition/><ColumnDefinition/></Grid.ColumnDefinitions>
+          <StackPanel Margin="0,0,8,0"><TextBlock Text="Polazna lokacija *" FontWeight="Medium" Margin="4,4,4,0"/><ComboBox x:Name="DepartureBox" IsTextSearchEnabled="True" MaxDropDownHeight="300"/><TextBlock x:Name="DepartureError" Foreground="Firebrick" FontSize="12" Margin="6,0,0,2"/></StackPanel>
+          <StackPanel Grid.Column="1" Margin="8,0,0,0"><TextBlock Text="Kontakt telefon (opcionalno)" FontWeight="Medium" Margin="4,4,4,0"/><TextBox x:Name="PhoneBox"/><TextBlock x:Name="PhoneError" Foreground="Firebrick" FontSize="12" Margin="6,0,0,2"/></StackPanel>
+        </Grid>
+        <TextBlock Text="Broj putnika (opcionalno)" FontWeight="Medium" Margin="4,4,4,0"/><TextBox x:Name="PassengersBox" Width="150" HorizontalAlignment="Left"/><TextBlock x:Name="PassengersError" Foreground="Firebrick" FontSize="12" Margin="6,0,0,2"/>
+        <TextBlock Text="Napomena (opcionalno)" FontWeight="Medium" Margin="4,4,4,0"/><TextBox x:Name="NoteBox" Height="68" AcceptsReturn="True" TextWrapping="Wrap"/>
+        <StackPanel x:Name="AdminReasonPanel"><TextBlock Text="Razlog administratorske izmjene *" FontWeight="Medium" Margin="4,4,4,0"/><TextBox x:Name="AdminReasonBox" Height="58" AcceptsReturn="True" TextWrapping="Wrap"/><TextBlock x:Name="AdminReasonError" Foreground="Firebrick" FontSize="12" Margin="6,0,0,2"/></StackPanel>
+
+        <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,14,0,0">
+          <Button Content="Odustani" Style="{StaticResource QuietButton}" Click="Cancel_Click"/>
+          <Button x:Name="SaveButton" Content="Sačuvaj rezervaciju" Click="Save_Click"/>
+        </StackPanel>
+      </StackPanel>
+    </Border>
+  </ScrollViewer>
+</Window>

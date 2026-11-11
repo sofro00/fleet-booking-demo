@@ -1,0 +1,55 @@
+<Window x:Class="FleetBooking.Client.SettingsWindow"
+ xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+ Title="Podešavanja" Width="660" Height="750" MinWidth="590" MinHeight="520"
+ WindowStartupLocation="CenterOwner" Background="{StaticResource Canvas}">
+ <Window.Resources>
+  <Style TargetType="CheckBox"><Setter Property="ContentTemplate"><Setter.Value><DataTemplate><TextBlock Text="{Binding}" TextWrapping="Wrap"/></DataTemplate></Setter.Value></Setter></Style>
+ </Window.Resources>
+ <DockPanel Margin="18">
+  <StackPanel DockPanel.Dock="Top" Margin="8,0,8,12">
+   <TextBlock Text="Podešavanja" FontSize="25" FontWeight="SemiBold" Foreground="{StaticResource Navy}"/>
+   <TextBlock Text="Lična podešavanja važe samo za vaš nalog na ovom računaru." Foreground="#667085" TextWrapping="Wrap" Margin="0,5,0,0"/>
+  </StackPanel>
+  <StackPanel DockPanel.Dock="Bottom">
+   <TextBlock x:Name="ErrorText" Foreground="Firebrick" TextWrapping="Wrap" Margin="8,5"/>
+   <Grid><Grid.ColumnDefinitions><ColumnDefinition/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
+    <Button Content="Vrati početne vrijednosti" Style="{StaticResource QuietButton}" HorizontalAlignment="Left" Click="Reset_Click"/>
+    <StackPanel Grid.Column="1" Orientation="Horizontal"><Button Content="Odustani" Style="{StaticResource QuietButton}" Click="Cancel_Click"/><Button Content="Sačuvaj" IsDefault="True" Click="Save_Click"/></StackPanel>
+   </Grid>
+  </StackPanel>
+  <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+   <StackPanel>
+    <Border Style="{StaticResource Card}"><StackPanel>
+     <TextBlock Text="Izgled" FontSize="17" FontWeight="SemiBold" Margin="0,0,0,10"/>
+     <Grid><Grid.ColumnDefinitions><ColumnDefinition/><ColumnDefinition Width="220"/></Grid.ColumnDefinitions>
+      <TextBlock Text="Veličina teksta" VerticalAlignment="Center"/><ComboBox x:Name="TextSizeBox" Grid.Column="1" SelectedValuePath="Key" DisplayMemberPath="Value"/>
+     </Grid>
+     <CheckBox x:Name="CompactRowsBox" Content="Zbijeniji redovi u tabelama" Margin="0,10,0,0"/>
+    </StackPanel></Border>
+    <Border Style="{StaticResource Card}"><StackPanel>
+     <TextBlock Text="Pokretanje i ponašanje" FontSize="17" FontWeight="SemiBold" Margin="0,0,0,10"/>
+     <Grid><Grid.ColumnDefinitions><ColumnDefinition/><ColumnDefinition Width="220"/></Grid.ColumnDefinitions>
+      <TextBlock Text="Početni ekran" VerticalAlignment="Center"/><ComboBox x:Name="StartupBox" Grid.Column="1" SelectedValuePath="Key" DisplayMemberPath="Value"/>
+     </Grid>
+     <CheckBox x:Name="MaximizedBox" Content="Otvori aplikaciju preko cijelog ekrana" Margin="0,10,0,0"/>
+     <CheckBox x:Name="DoubleClickBox" Content="Dvoklik na vozilo otvara rezervaciju" Margin="0,10,0,0"/>
+    </StackPanel></Border>
+    <Border Style="{StaticResource Card}"><StackPanel>
+     <TextBlock Text="Pamćenje izbora" FontSize="17" FontWeight="SemiBold" Margin="0,0,0,10"/>
+     <CheckBox x:Name="TablesBox" Content="Zapamti širinu i redosljed kolona i sortiranje"/>
+     <CheckBox x:Name="CalendarBox" Content="Zapamti dnevni, sedmični ili mjesečni pregled kalendara" Margin="0,10,0,0"/>
+     <TextBlock Text="Posljednja kartica pamti se kada je izabrana kao početni ekran. Datumi se pri pokretanju vraćaju na aktuelni dan." Foreground="#667085" TextWrapping="Wrap" Margin="0,10,0,0"/>
+    </StackPanel></Border>
+    <Border Style="{StaticResource Card}"><StackPanel>
+     <TextBlock Text="Obavještenja" FontSize="17" FontWeight="SemiBold" Margin="0,0,0,10"/>
+     <CheckBox x:Name="SuccessBox" Content="Prikaži potvrde uspješnog čuvanja"/>
+     <TextBlock Text="Greške, potvrde otkazivanja i upozorenja o nesačuvanim izmjenama uvijek su uključeni." Foreground="#667085" TextWrapping="Wrap" Margin="0,10,0,0"/>
+    </StackPanel></Border>
+    <Border Style="{StaticResource Card}"><StackPanel>
+     <TextBlock Text="Prečice na tastaturi" FontSize="17" FontWeight="SemiBold" Margin="0,0,0,10"/>
+     <TextBlock Text="Ctrl+N — nova rezervacija&#10;Ctrl+F — pretraga aktivnog pregleda&#10;F5 — osvježi aktivni pregled&#10;Esc — zatvori formu (uz provjeru izmjena)&#10;Tab / Shift+Tab — naredno / prethodno polje" TextWrapping="Wrap"/>
+    </StackPanel></Border>
+   </StackPanel>
+  </ScrollViewer>
+ </DockPanel>
+</Window>

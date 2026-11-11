@@ -1,0 +1,12 @@
+<Window x:Class="FleetBooking.Client.LoginWindow" xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" Title="Fleet Booking Demo — Prijava" Width="480" Height="620" WindowStartupLocation="CenterScreen" ResizeMode="NoResize" Background="#F4F6F8">
+  <Grid><Border Width="370" Padding="34" Background="White" CornerRadius="8" VerticalAlignment="Center"><StackPanel>
+    <Border Background="#192433" Padding="18" Margin="-34,-34,-34,28"><StackPanel><TextBlock Text="FLEET BOOKING" FontFamily="Segoe UI" Foreground="White" FontWeight="Bold" FontSize="24"/><TextBlock Text="DEMO · samo izmišljeni podaci" Foreground="#FFD7DCE2" FontSize="15"/></StackPanel></Border>
+    <TextBlock Text="E-mail adresa" Margin="4,4,4,0"/><TextBox x:Name="EmailBox" Height="40"/>
+    <TextBlock Text="Lozinka" Margin="4,14,4,0"/><PasswordBox x:Name="PasswordBox" Height="40" KeyDown="PasswordBox_KeyDown"/>
+    <CheckBox x:Name="RememberMeBox" Content="Zapamti me na ovom računaru" Margin="6,12,4,2" Foreground="#344054"/>
+    <TextBlock x:Name="ErrorText" Foreground="#B00020" TextWrapping="Wrap" Margin="4,8"/>
+    <Button x:Name="LoginButton" Content="Prijavi se" Height="44" Click="Login_Click"/>
+    <Button x:Name="ForgetButton" Content="Zaboravi sačuvane podatke" Click="Forget_Click" Style="{StaticResource QuietButton}" Visibility="Collapsed"/>
+    <TextBlock Text="admin@example.com ili ana@example.com. Demo lozinka je u .local/demo-access.txt." Foreground="#667085" TextWrapping="Wrap" HorizontalAlignment="Center" Margin="4,18,4,0"/>
+  </StackPanel></Border></Grid>
+</Window>

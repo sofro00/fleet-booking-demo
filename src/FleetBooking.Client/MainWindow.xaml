@@ -1,0 +1,168 @@
+<Window x:Class="FleetBooking.Client.MainWindow" xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" xmlns:local="clr-namespace:FleetBooking.Client" Title="Fleet Booking Demo" Width="1360" Height="820" MinWidth="1040" MinHeight="660" WindowStartupLocation="CenterScreen" WindowState="Maximized" Background="{StaticResource Canvas}">
+  <Window.Resources>
+    <local:RoleLabelConverter x:Key="RoleLabel"/>
+    <Style x:Key="AdminColumnHeader" TargetType="DataGridColumnHeader" BasedOn="{StaticResource {x:Type DataGridColumnHeader}}">
+      <Setter Property="ContentTemplate"><Setter.Value><DataTemplate><TextBlock Text="{Binding}" TextWrapping="Wrap" TextAlignment="Center" VerticalAlignment="Center"/></DataTemplate></Setter.Value></Setter>
+    </Style>
+    <Style x:Key="AdminGrid" TargetType="DataGrid" BasedOn="{StaticResource {x:Type DataGrid}}">
+      <Setter Property="HorizontalAlignment" Value="Stretch"/>
+      <Setter Property="ColumnHeaderStyle" Value="{StaticResource AdminColumnHeader}"/>
+    </Style>
+    <Style x:Key="AdminGridText" TargetType="TextBlock" BasedOn="{StaticResource CenteredGridText}">
+      <Setter Property="TextTrimming" Value="CharacterEllipsis"/>
+      <Setter Property="ToolTip" Value="{Binding Text, RelativeSource={RelativeSource Self}}"/>
+    </Style>
+    <Style x:Key="IssueStatusText" TargetType="TextBlock" BasedOn="{StaticResource AdminGridText}">
+      <Setter Property="Foreground" Value="{Binding StatusForeground}"/>
+      <Setter Property="FontWeight" Value="SemiBold"/>
+    </Style>
+    <DataTemplate x:Key="VehicleStatusTemplate">
+      <Border Background="{Binding StatusBackground}" CornerRadius="5" Padding="8,5" Margin="2" HorizontalAlignment="Center" VerticalAlignment="Center">
+        <TextBlock Text="{Binding Status}" Foreground="{Binding StatusForeground}" FontWeight="SemiBold" TextAlignment="Center" TextWrapping="Wrap"/>
+      </Border>
+    </DataTemplate>
+  </Window.Resources>
+  <DockPanel>
+    <Border DockPanel.Dock="Top" Background="{StaticResource Navy}" Padding="22,13"><Grid><Grid.ColumnDefinitions><ColumnDefinition Width="Auto"/><ColumnDefinition/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
+      <StackPanel Orientation="Horizontal"><Border Width="5" Background="{StaticResource Brand}" CornerRadius="2" Margin="0,1,12,1"/><TextBlock Text="FLEET BOOKING" Foreground="White" FontSize="22" FontWeight="Bold" VerticalAlignment="Center"/><TextBlock Text="  |  DEMO · izmišljeni podaci" Foreground="#D7DCE2" FontSize="17" VerticalAlignment="Center"/></StackPanel>
+      <TextBlock x:Name="UserText" Grid.Column="1" Foreground="White" VerticalAlignment="Center" HorizontalAlignment="Stretch" TextAlignment="Right" TextTrimming="CharacterEllipsis" Margin="14,0"/>
+      <StackPanel Grid.Column="2" Orientation="Horizontal"><Button Content="Podešavanja" Click="Settings_Click" Style="{StaticResource SecondaryButton}"/><Button Content="Promijeni lozinku" Click="ChangePassword_Click" Style="{StaticResource SecondaryButton}"/><Button Content="Odjavi se" Click="Logout_Click" Style="{StaticResource QuietButton}"/></StackPanel>
+    </Grid></Border>
+    <Border DockPanel.Dock="Top" Padding="14,3" BorderBrush="{StaticResource Line}" BorderThickness="0,0,0,1" Background="White">
+      <DockPanel LastChildFill="False">
+        <TextBlock Text="Pretraga:" VerticalAlignment="Center" Margin="4,0"/>
+        <TextBox x:Name="QuickSearchBox" Width="280" MaxLength="200" TextChanged="QuickSearch_TextChanged" ToolTip="Pretraga aktivnog pregleda (Ctrl+F)"/>
+        <Button Content="Očisti" Click="ClearSearch_Click" Style="{StaticResource QuietButton}"/>
+      </DockPanel>
+    </Border>
+    <Border DockPanel.Dock="Bottom" Background="White" BorderBrush="{StaticResource Line}" BorderThickness="0,1,0,0" Padding="12"><DockPanel LastChildFill="True">
+      <TextBlock x:Name="VersionText" DockPanel.Dock="Right" Foreground="#667085" Margin="14,0,0,0"/>
+      <TextBlock x:Name="ConnectionText" DockPanel.Dock="Right" Text="● Provjera servera…" Foreground="#667085" Margin="14,0,0,0"/>
+      <TextBlock x:Name="BackupFooterText" DockPanel.Dock="Right" Foreground="#667085" Margin="14,0,0,0" Visibility="Collapsed"/>
+      <TextBlock x:Name="StatusText" Foreground="#475467" Text="Spremno"/>
+    </DockPanel></Border>
+    <TabControl x:Name="MainTabs" Margin="14" SelectionChanged="MainTabs_SelectionChanged">
+      <TabItem Header="Početna"><ScrollViewer VerticalScrollBarVisibility="Auto"><StackPanel Margin="10">
+        <Grid Margin="6,4,6,14"><Grid.ColumnDefinitions><ColumnDefinition/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions><StackPanel><TextBlock x:Name="DashboardGreeting" FontSize="27" FontWeight="SemiBold" Foreground="{StaticResource Navy}"/><TextBlock Text="Pregled današnjih vozila i vaših narednih rezervacija" Foreground="#667085" Margin="0,4,0,0"/></StackPanel><StackPanel Grid.Column="1" Orientation="Horizontal"><Button Content="Nova rezervacija" Click="GoToAvailable_Click"/><Button Content="Osvježi" Style="{StaticResource QuietButton}" Click="RefreshDashboard_Click"/></StackPanel></Grid>
+        <UniformGrid Columns="4">
+          <Border Style="{StaticResource Card}"><StackPanel><TextBlock Text="Aktivna vozila" Foreground="#667085"/><TextBlock x:Name="ActiveVehiclesCount" Text="—" FontSize="30" FontWeight="Bold" Foreground="{StaticResource Navy}"/></StackPanel></Border>
+          <Border Style="{StaticResource Card}"><StackPanel><TextBlock Text="Slobodna cijeli dan" Foreground="#667085"/><TextBlock x:Name="AvailableTodayCount" Text="—" FontSize="30" FontWeight="Bold" Foreground="#16804A"/></StackPanel></Border>
+          <Border Style="{StaticResource Card}"><StackPanel><TextBlock Text="Moje naredne" Foreground="#667085"/><TextBlock x:Name="MyUpcomingCount" Text="—" FontSize="30" FontWeight="Bold" Foreground="#175CD3"/></StackPanel></Border>
+          <Border Style="{StaticResource Card}"><StackPanel><TextBlock Text="Servis / nedostupno danas" Foreground="#667085"/><TextBlock x:Name="UnavailableTodayCount" Text="—" FontSize="30" FontWeight="Bold" Foreground="#C45C00"/></StackPanel></Border>
+        </UniformGrid>
+        <Grid Margin="0,8,0,0"><Grid.ColumnDefinitions><ColumnDefinition Width="3*"/><ColumnDefinition Width="2*"/></Grid.ColumnDefinitions>
+          <Border Style="{StaticResource Card}"><DockPanel><TextBlock DockPanel.Dock="Top" Text="Moje naredne rezervacije" FontSize="18" FontWeight="SemiBold" Foreground="{StaticResource Navy}" Margin="4,0,4,10"/><DataGrid x:Name="DashboardMineGrid" MaxHeight="310"><DataGrid.Columns><DataGridTextColumn Header="Vozilo" Binding="{Binding Vehicle}" Width="*" ElementStyle="{StaticResource CenteredGridText}"/><DataGridTextColumn Header="Preuzimanje" Binding="{Binding Start}" Width="145" ElementStyle="{StaticResource CenteredGridText}"/><DataGridTextColumn Header="Vraćanje" Binding="{Binding End}" Width="145" ElementStyle="{StaticResource CenteredGridText}"/><DataGridTextColumn Header="Odredište" Binding="{Binding Destination}" Width="150" ElementStyle="{StaticResource CenteredGridText}"/></DataGrid.Columns></DataGrid></DockPanel></Border>
+          <Border Grid.Column="1" Style="{StaticResource Card}"><DockPanel><TextBlock DockPanel.Dock="Top" Text="Današnja zauzetost" FontSize="18" FontWeight="SemiBold" Foreground="{StaticResource Navy}" Margin="4,0,4,10"/><DataGrid x:Name="DashboardOccupancyGrid" MaxHeight="310"><DataGrid.Columns><DataGridTextColumn Header="Vozilo" Binding="{Binding Vehicle}" Width="*" ElementStyle="{StaticResource CenteredGridText}"/><DataGridTextColumn Header="Od" Binding="{Binding Start}" Width="125" ElementStyle="{StaticResource CenteredGridText}"/><DataGridTextColumn x:Name="DashboardReservedByColumn" Header="Rezervisao/la" Binding="{Binding ReservedBy}" Width="165" ElementStyle="{StaticResource CenteredGridText}"/></DataGrid.Columns></DataGrid></DockPanel></Border>
+        </Grid>
+      </StackPanel></ScrollViewer></TabItem>
+      <TabItem Header="Dostupna vozila"><DockPanel Margin="8">
+        <Border DockPanel.Dock="Top" Style="{StaticResource Card}" Padding="12"><WrapPanel VerticalAlignment="Center" ItemHeight="44"><TextBlock Text="Od:" VerticalAlignment="Center"/><DatePicker x:Name="AvailableStartDate" Width="135"/><ComboBox x:Name="AvailableStartTime" Width="92"/><TextBlock Text="Do:" VerticalAlignment="Center" Margin="10,0,0,0"/><DatePicker x:Name="AvailableEndDate" Width="135"/><ComboBox x:Name="AvailableEndTime" Width="92"/><CheckBox x:Name="OnlyFreeVehicles" Content="Samo slobodna" Margin="12,4" VerticalAlignment="Center" Click="SearchAvailable_Click"/><Button Content="Provjeri dostupnost" Click="SearchAvailable_Click"/><Button Content="Rezerviši izabrano" Click="CreateReservation_Click"/></WrapPanel></Border>
+        <DataGrid x:Name="VehiclesGrid" RowHeight="72" MouseDoubleClick="VehiclesGrid_MouseDoubleClick" ToolTip="Status za izabrani termin. Dvoklik na vozilo otvara rezervaciju."><DataGrid.Columns><DataGridTemplateColumn Header="Slika" Width="110"><DataGridTemplateColumn.CellTemplate><DataTemplate><Border Width="92" Height="58" Background="Transparent" BorderThickness="0" ClipToBounds="True" HorizontalAlignment="Center" VerticalAlignment="Center"><Image Source="{Binding Image}" Stretch="Uniform"/></Border></DataTemplate></DataGridTemplateColumn.CellTemplate></DataGridTemplateColumn><DataGridTextColumn Header="Marka i model" Binding="{Binding Item.MakeModel}" Width="170" ElementStyle="{StaticResource CenteredGridText}"/><DataGridTextColumn Header="Registracija" Binding="{Binding Item.Registration}" Width="110" ElementStyle="{StaticResource CenteredGridText}"/><DataGridTemplateColumn Header="Status za izabrani termin" Width="240" CellTemplate="{StaticResource VehicleStatusTemplate}"/><DataGridTextColumn Header="Sjedišta" Binding="{Binding Item.SeatCount}" Width="80" ElementStyle="{StaticResource CenteredGridText}"/><DataGridTextColumn Header="Gorivo" Binding="{Binding Item.FuelType}" Width="110" ElementStyle="{StaticResource CenteredGridText}"/><DataGridTextColumn Header="Lokacija preuzimanja" Binding="{Binding Item.PickupLocation}" Width="190" ElementStyle="{StaticResource CenteredGridText}"/><DataGridTextColumn Header="Napomena" Binding="{Binding Item.Note}" Width="220" ElementStyle="{StaticResource CenteredGridText}"/></DataGrid.Columns></DataGrid>
+      </DockPanel></TabItem>
+      <TabItem Header="Kalendar zauzetosti"><DockPanel Margin="8">
+        <Border DockPanel.Dock="Top" Style="{StaticResource Card}" Padding="12"><WrapPanel VerticalAlignment="Center" ItemHeight="44"><TextBlock Text="Pregled:" VerticalAlignment="Center"/><ComboBox x:Name="CalendarView" Width="130" SelectedIndex="1"><ComboBoxItem Content="Dnevni"/><ComboBoxItem Content="Sedmični"/><ComboBoxItem Content="Mjesečni"/></ComboBox><TextBlock Text="Datum:" VerticalAlignment="Center"/><DatePicker x:Name="CalendarDate" Width="140"/><Button Content="Prikaži" Click="LoadCalendar_Click"/><TextBox x:Name="CalendarSearch" Width="220" ToolTip="Pretraga vozila" TextChanged="CalendarSearch_TextChanged"/><StackPanel Orientation="Horizontal" Margin="14,0,0,0" VerticalAlignment="Center"><Border Width="13" Height="13" Background="#3276C8" CornerRadius="2"/><TextBlock Text=" Rezervacija" Margin="0,0,12,0" VerticalAlignment="Center"/><Border Width="13" Height="13" Background="#E58A1F" CornerRadius="2"/><TextBlock Text=" Nedostupno" VerticalAlignment="Center"/></StackPanel></WrapPanel></Border>
+        <Border Background="White" BorderBrush="{StaticResource Line}" BorderThickness="1" Margin="4" CornerRadius="6"><ScrollViewer x:Name="CalendarScrollViewer" HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto" HorizontalContentAlignment="Left" SizeChanged="CalendarScrollViewer_SizeChanged"><StackPanel x:Name="CalendarTimelinePanel" HorizontalAlignment="Left"/></ScrollViewer></Border>
+      </DockPanel></TabItem>
+      <TabItem Header="Moje rezervacije"><DockPanel Margin="8"><StackPanel DockPanel.Dock="Top" Orientation="Horizontal"><Button Content="Osvježi" Style="{StaticResource QuietButton}" Click="LoadMine_Click"/><Button Content="Izmijeni" Click="EditMine_Click"/><Button Content="Otkaži" Style="{StaticResource SecondaryButton}" Click="CancelMine_Click"/></StackPanel>
+        <DataGrid x:Name="MineGrid"><DataGrid.Columns><DataGridTextColumn Header="Vozilo" Binding="{Binding Vehicle}" Width="*"/><DataGridTextColumn Header="Preuzimanje" Binding="{Binding Start}" Width="150"/><DataGridTextColumn Header="Vraćanje" Binding="{Binding End}" Width="150"/><DataGridTextColumn Header="Svrha" Binding="{Binding Purpose}" Width="200"/><DataGridTextColumn Header="Odredište" Binding="{Binding Destination}" Width="160"/><DataGridTextColumn Header="Status" Binding="{Binding Status}" Width="100"/></DataGrid.Columns></DataGrid>
+      </DockPanel></TabItem>
+      <TabItem x:Name="AdminTab" Header="Administracija"><TabControl x:Name="AdminTabs" Margin="6" SelectionChanged="AdminTabs_SelectionChanged">
+        <TabItem Header="Vozila">
+          <DockPanel>
+            <WrapPanel DockPanel.Dock="Top"><Button Content="Osvježi" Style="{StaticResource QuietButton}" Click="LoadAdminVehicles_Click"/><Button Content="Dodaj" Click="AddVehicle_Click"/><Button Content="Izmijeni" Click="EditVehicle_Click"/><Button Content="Dodaj / promijeni sliku" Click="SetVehicleImage_Click"/><Button Content="Ukloni sliku" Style="{StaticResource QuietButton}" Click="DeleteVehicleImage_Click"/><Button Content="Zaduži / razduži" Click="AssignVehicle_Click"/><Button Content="Aktiviraj / deaktiviraj" Style="{StaticResource SecondaryButton}" Click="ToggleVehicle_Click"/></WrapPanel>
+            <DataGrid x:Name="AdminVehiclesGrid" RowHeight="72" Style="{StaticResource AdminGrid}">
+              <DataGrid.Columns>
+                <DataGridTemplateColumn Header="Slika" Width="110*" MinWidth="105" CanUserSort="False"><DataGridTemplateColumn.CellTemplate><DataTemplate><Border Width="92" Height="58" Background="Transparent" BorderThickness="0" ClipToBounds="True" HorizontalAlignment="Center" VerticalAlignment="Center"><Image Source="{Binding Image}" Stretch="Uniform"/></Border></DataTemplate></DataGridTemplateColumn.CellTemplate></DataGridTemplateColumn>
+                <DataGridTextColumn Header="Marka i model" Binding="{Binding Item.MakeModel}" Width="175*" MinWidth="140" ElementStyle="{StaticResource AdminGridText}"/>
+                <DataGridTextColumn Header="Registracija" Binding="{Binding Item.Registration}" Width="110*" MinWidth="95" ElementStyle="{StaticResource AdminGridText}"/>
+                <DataGridTemplateColumn Header="Status sada" Width="220*" MinWidth="170" SortMemberPath="Status" CellTemplate="{StaticResource VehicleStatusTemplate}"/>
+                <DataGridTextColumn Header="Sjedišta" Binding="{Binding Item.SeatCount}" Width="80*" MinWidth="70" ElementStyle="{StaticResource AdminGridText}"/>
+                <DataGridTextColumn Header="Gorivo" Binding="{Binding Item.FuelType}" Width="100*" MinWidth="80" ElementStyle="{StaticResource AdminGridText}"/>
+                <DataGridTextColumn Header="Lokacija" Binding="{Binding Item.PickupLocation}" Width="160*" MinWidth="120" ElementStyle="{StaticResource AdminGridText}"/>
+                <DataGridCheckBoxColumn Header="Aktivno" Binding="{Binding Item.IsActive, Mode=OneWay}" Width="85*" MinWidth="70" ElementStyle="{StaticResource ReadOnlyCenteredGridCheckBox}"/>
+              </DataGrid.Columns>
+            </DataGrid>
+          </DockPanel>
+        </TabItem>
+        <TabItem Header="Korisnici">
+          <DockPanel>
+            <StackPanel DockPanel.Dock="Top" Orientation="Horizontal"><Button Content="Osvježi" Style="{StaticResource QuietButton}" Click="LoadUsers_Click"/><Button Content="Dodaj" Click="AddUser_Click"/><Button Content="Izmijeni / status" Click="EditUser_Click"/><Button Content="Resetuj lozinku" Style="{StaticResource SecondaryButton}" Click="ResetPassword_Click"/></StackPanel>
+            <DataGrid x:Name="UsersGrid" Style="{StaticResource AdminGrid}">
+              <DataGrid.Columns>
+                <DataGridTextColumn Header="Ime i prezime" Binding="{Binding FullName}" Width="260*" MinWidth="180" ElementStyle="{StaticResource AdminGridText}"/>
+                <DataGridTextColumn Header="E-mail" Binding="{Binding Email}" Width="320*" MinWidth="220" ElementStyle="{StaticResource AdminGridText}"/>
+                <DataGridTextColumn Header="Uloga" Binding="{Binding Role, Converter={StaticResource RoleLabel}}" SortMemberPath="Role" Width="145*" MinWidth="110" ElementStyle="{StaticResource AdminGridText}"/>
+                <DataGridTextColumn Header="Telefon" Binding="{Binding Phone}" Width="135*" MinWidth="100" ElementStyle="{StaticResource AdminGridText}"/>
+                <DataGridCheckBoxColumn Header="Aktivan" Binding="{Binding IsActive, Mode=OneWay}" Width="85*" MinWidth="70" ElementStyle="{StaticResource ReadOnlyCenteredGridCheckBox}"/>
+                <DataGridCheckBoxColumn Header="Mora promijeniti lozinku" Binding="{Binding MustChangePassword, Mode=OneWay}" Width="185*" MinWidth="145" ElementStyle="{StaticResource ReadOnlyCenteredGridCheckBox}"/>
+              </DataGrid.Columns>
+            </DataGrid>
+          </DockPanel>
+        </TabItem>
+        <TabItem Header="Sve rezervacije"><DockPanel>
+          <StackPanel DockPanel.Dock="Top" Orientation="Horizontal"><Button Content="Osvježi" Style="{StaticResource QuietButton}" Click="LoadAllReservations_Click"/><Button Content="Izmijeni" Click="EditAll_Click"/><Button Content="Otkaži" Style="{StaticResource SecondaryButton}" Click="CancelAll_Click"/></StackPanel>
+          <DataGrid x:Name="AllReservationsGrid" Style="{StaticResource AdminGrid}"><DataGrid.Columns>
+            <DataGridTextColumn Header="Zaposleni" Binding="{Binding Employee}" Width="240*" MinWidth="180" ElementStyle="{StaticResource AdminGridText}"/>
+            <DataGridTextColumn Header="Vozilo" Binding="{Binding Vehicle}" Width="240*" MinWidth="180" ElementStyle="{StaticResource AdminGridText}"/>
+            <DataGridTextColumn Header="Početak" Binding="{Binding Start}" Width="160*" MinWidth="145" ElementStyle="{StaticResource AdminGridText}"/>
+            <DataGridTextColumn Header="Kraj" Binding="{Binding End}" Width="160*" MinWidth="145" ElementStyle="{StaticResource AdminGridText}"/>
+            <DataGridTextColumn Header="Svrha" Binding="{Binding Purpose}" Width="220*" MinWidth="150" ElementStyle="{StaticResource AdminGridText}"/>
+            <DataGridTextColumn Header="Status" Binding="{Binding Status}" Width="120*" MinWidth="90" ElementStyle="{StaticResource AdminGridText}"/>
+          </DataGrid.Columns></DataGrid>
+        </DockPanel></TabItem>
+        <TabItem Header="Servis / nedostupnost"><DockPanel>
+          <StackPanel DockPanel.Dock="Top" Orientation="Horizontal"><Button Content="Osvježi" Style="{StaticResource QuietButton}" Click="LoadUnavailability_Click"/><Button Content="Dodaj period" Click="AddUnavailability_Click"/><Button Content="Ukloni period" Style="{StaticResource SecondaryButton}" Click="DeleteUnavailability_Click"/></StackPanel>
+          <DataGrid x:Name="UnavailabilityGrid" Style="{StaticResource AdminGrid}"><DataGrid.Columns>
+            <DataGridTextColumn Header="Vozilo" Binding="{Binding Vehicle}" Width="240*" MinWidth="180" ElementStyle="{StaticResource AdminGridText}"/>
+            <DataGridTextColumn Header="Početak" Binding="{Binding Start}" Width="160*" MinWidth="145" ElementStyle="{StaticResource AdminGridText}"/>
+            <DataGridTextColumn Header="Kraj" Binding="{Binding End}" Width="160*" MinWidth="145" ElementStyle="{StaticResource AdminGridText}"/>
+            <DataGridTextColumn Header="Razlog" Binding="{Binding Reason}" Width="340*" MinWidth="220" ElementStyle="{StaticResource AdminGridText}"/>
+          </DataGrid.Columns></DataGrid>
+        </DockPanel></TabItem>
+        <TabItem Header="Evidencija izmjena"><DockPanel>
+          <Button DockPanel.Dock="Top" HorizontalAlignment="Left" Content="Osvježi" Style="{StaticResource QuietButton}" Click="LoadAudit_Click"/>
+          <DataGrid x:Name="AuditGrid" Style="{StaticResource AdminGrid}"><DataGrid.Columns>
+            <DataGridTextColumn Header="Vrijeme" Binding="{Binding Time}" Width="160*" MinWidth="145" ElementStyle="{StaticResource AdminGridText}"/>
+            <DataGridTextColumn Header="Korisnik" Binding="{Binding Actor}" Width="220*" MinWidth="170" ElementStyle="{StaticResource AdminGridText}"/>
+            <DataGridTextColumn Header="Radnja" Binding="{Binding Action}" Width="250*" MinWidth="190" ElementStyle="{StaticResource AdminGridText}"/>
+            <DataGridTextColumn Header="Vrsta" Binding="{Binding Entity}" Width="130*" MinWidth="100" ElementStyle="{StaticResource AdminGridText}"/>
+            <DataGridTextColumn Header="Detalji" Binding="{Binding Details}" Width="400*" MinWidth="240" ElementStyle="{StaticResource AdminGridText}"/>
+          </DataGrid.Columns></DataGrid>
+        </DockPanel></TabItem>
+        <TabItem Header="Održavanje"><ScrollViewer VerticalScrollBarVisibility="Auto"><Border Style="{StaticResource Card}" MaxWidth="760" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="16"><StackPanel>
+          <TextBlock Text="Rezervne kopije baze" FontSize="20" FontWeight="SemiBold" Margin="0,0,0,14"/>
+          <TextBlock x:Name="BackupSummaryText" Text="Učitavanje stanja rezervnih kopija…" TextWrapping="Wrap" FontSize="14"/>
+          <Button Content="Osvježi stanje" Click="RefreshBackup_Click" HorizontalAlignment="Left" Margin="0,16,0,0"/>
+        </StackPanel></Border></ScrollViewer></TabItem>
+      </TabControl></TabItem>
+      <TabItem x:Name="IssuesTab" Header="Prijava kvarova">
+        <DockPanel Margin="8">
+          <Border DockPanel.Dock="Top" Style="{StaticResource Card}" Padding="12"><StackPanel>
+            <TextBlock x:Name="IssuesScopeText" Text="Prijave kvarova, oštećenja i opreme koja nedostaje." TextWrapping="Wrap"/>
+            <TextBlock Text="Prijava ne blokira vozilo automatski. Za problem koji utiče na bezbjednost, ne koristite vozilo i obavijestite administratora." Foreground="#667085" TextWrapping="Wrap" Margin="0,5,0,8"/>
+            <WrapPanel VerticalAlignment="Center">
+              <Button Content="Osvježi" Click="RefreshIssues_Click" Style="{StaticResource QuietButton}"/>
+              <Button Content="Nova prijava" Click="AddIssue_Click"/>
+              <Button Content="Detalji" Click="IssueDetails_Click" Style="{StaticResource QuietButton}"/>
+              <Button x:Name="ProcessIssueButton" Content="Obradi prijavu" Click="ProcessIssue_Click"/>
+              <TextBlock Text="Status:" VerticalAlignment="Center" Margin="14,0,4,0"/>
+              <ComboBox x:Name="IssuesStatusBox" Width="150" SelectedIndex="0" SelectionChanged="IssuesStatus_Changed">
+                <ComboBoxItem Content="Sve" Tag=""/><ComboBoxItem Content="Nova" Tag="Open"/><ComboBoxItem Content="U toku" Tag="InProgress"/><ComboBoxItem Content="Riješena" Tag="Resolved"/>
+              </ComboBox>
+            </WrapPanel>
+          </StackPanel></Border>
+          <DataGrid x:Name="IssuesGrid" Style="{StaticResource AdminGrid}">
+            <DataGrid.Columns>
+              <DataGridTextColumn Header="Prijavljeno" Binding="{Binding Created}" Width="160*" MinWidth="145" ElementStyle="{StaticResource AdminGridText}"/>
+              <DataGridTextColumn Header="Vozilo" Binding="{Binding Vehicle}" Width="220*" MinWidth="170" ElementStyle="{StaticResource AdminGridText}"/>
+              <DataGridTextColumn Header="Prijavio/la" Binding="{Binding Reporter}" Width="200*" MinWidth="150" ElementStyle="{StaticResource AdminGridText}"/>
+              <DataGridTextColumn Header="Vrsta" Binding="{Binding Category}" Width="160*" MinWidth="110" ElementStyle="{StaticResource AdminGridText}"/>
+              <DataGridTextColumn Header="Opis problema" Binding="{Binding Description}" Width="360*" MinWidth="220" ElementStyle="{StaticResource AdminGridText}"/>
+              <DataGridTextColumn Header="Status" Binding="{Binding Status}" Width="120*" MinWidth="85" ElementStyle="{StaticResource IssueStatusText}"/>
+            </DataGrid.Columns>
+          </DataGrid>
+        </DockPanel>
+      </TabItem>
+    </TabControl>
+  </DockPanel>
+</Window>
