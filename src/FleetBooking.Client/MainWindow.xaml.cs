@@ -337,7 +337,7 @@ public partial class MainWindow : Window
         {
             var bytes = await _api.GetVehicleImageAsync(vehicle.Id);
             using var stream = new MemoryStream(bytes);
-            var image = new BitmapImage(); image.BeginInit(); image.CacheOption = BitmapCacheOption.OnLoad; image.DecodePixelWidth = 240; image.StreamSource = stream; image.EndInit(); image.Freeze();
+            var image = VehicleThumbnail.Load(stream);
             _vehicleImageCache[vehicle.Id] = (vehicle.ImageUpdatedUtc, image); return image;
         }
         catch { _vehicleImageCache.Remove(vehicle.Id); return null; }

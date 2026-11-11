@@ -68,6 +68,19 @@ internal static class Program
         var encoder = new PngBitmapEncoder();
         encoder.Frames.Add(BitmapFrame.Create(bitmap));
         using (var stream = File.Create(output)) encoder.Save(stream);
+        // Check transparency over a blue selected row as well as the normal row background.
+        grid.Resources[SystemColors.HighlightBrushKey] = new SolidColorBrush(Color.FromRgb(0, 120, 215));
+        grid.Resources[SystemColors.InactiveSelectionHighlightBrushKey] = new SolidColorBrush(Color.FromRgb(0, 120, 215));
+        grid.SelectedIndex = 0;
+        root.UpdateLayout();
+        var selected = new RenderTargetBitmap(1360, 820, 96, 96, PixelFormats.Pbgra32);
+        selected.Render(root);
+        var selectedEncoder = new PngBitmapEncoder();
+        selectedEncoder.Frames.Add(BitmapFrame.Create(selected));
+        using (var stream = File.Create(Path.Combine(Path.GetDirectoryName(output)!, "selected-vehicles.png"))) selectedEncoder.Save(stream);
+        grid.SelectedIndex = -1;
+        grid.Resources.Remove(SystemColors.HighlightBrushKey);
+        grid.Resources.Remove(SystemColors.InactiveSelectionHighlightBrushKey);
         Console.WriteLine("WPF smoke: OK; 5 vozila sa slikama, 5 statusa i 8 kolona. Slika: " + output);
         VerifyReservationEditor(Path.GetDirectoryName(output)!);
         PreferencesChecks.Run(Path.GetDirectoryName(output)!);
@@ -78,17 +91,25 @@ internal static class Program
         app.Shutdown();
     }
 
-    private static BitmapImage LoadDemoImage(string file)
+    private static BitmapSource LoadDemoImage(string file)
     {
         using var stream = Assembly.GetExecutingAssembly().GetManifestResourceStream("FleetBooking.SmokeVehicles." + file)
             ?? throw new InvalidOperationException("Nedostaje demo slika vozila.");
-        var image = new BitmapImage();
-        image.BeginInit();
-        image.CacheOption = BitmapCacheOption.OnLoad;
-        image.DecodePixelWidth = 240;
-        image.StreamSource = stream;
-        image.EndInit();
-        image.Freeze();
+        var image = VehicleThumbnail.Load(stream);
+        var rgba = new FormatConvertedBitmap(image, PixelFormats.Bgra32, null, 0);
+        var stride = rgba.PixelWidth * 4;
+        var pixels = new byte[stride * rgba.PixelHeight];
+        rgba.CopyPixels(pixels, stride, 0);
+        var transparent = 0;
+        var opaque = 0;
+        for (var offset = 3; offset < pixels.Length; offset += 4)
+        {
+            if (pixels[offset] == 0) transparent++;
+            if (pixels[offset] >= 250) opaque++;
+        }
+        if (transparent < rgba.PixelWidth * rgba.PixelHeight / 20 || opaque == 0)
+            throw new InvalidOperationException("Slika vozila mora imati stvarno providnu pozadinu: " + file);
+        Console.WriteLine($"Providna slika: {file}; kadar {image.PixelWidth}x{image.PixelHeight}; providni pikseli {transparent}.");
         return image;
     }
 

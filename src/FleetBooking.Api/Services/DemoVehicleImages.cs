@@ -1,26 +1,31 @@
 using FleetBooking.Api.Data;
 using FleetBooking.Api.Models;
 using Microsoft.EntityFrameworkCore;
+using System.Security.Cryptography;
 
 namespace FleetBooking.Api.Services;
 
 public static class DemoVehicleImages
 {
-    private static readonly IReadOnlyDictionary<string, (string Model, string File)> Catalog =
-        new Dictionary<string, (string, string)>(StringComparer.Ordinal)
+    private sealed record Asset(string Model, string File, string PreviousSha256);
+    private static readonly IReadOnlyDictionary<string, Asset> Catalog =
+        new Dictionary<string, Asset>(StringComparer.Ordinal)
         {
-            ["DEMO-001"] = ("Toyota Corolla", "toyota-corolla.png"),
-            ["DEMO-002"] = ("Škoda Octavia", "skoda-octavia.png"),
-            ["DEMO-003"] = ("Renault Clio", "renault-clio.png"),
-            ["DEMO-004"] = ("Ford Transit", "ford-transit.png"),
-            ["DEMO-005"] = ("Volkswagen Golf", "volkswagen-golf.png")
+            ["DEMO-001"] = new("Toyota Corolla", "toyota-corolla.png", "b179cb6b38510033f4d052b9bfe7147abea34049d2f0376f3412928ef89b51e7"),
+            ["DEMO-002"] = new("Škoda Octavia", "skoda-octavia.png", "cd3e37cafd35ab1dd20c630fe29122aabb433ccc37abc040e650b37dad6bd6af"),
+            ["DEMO-003"] = new("Renault Clio", "renault-clio.png", "54ffa26e4609dd3b16889663e312a8f5ceb069b921f45ab85c0ba1678147d946"),
+            ["DEMO-004"] = new("Ford Transit", "ford-transit.png", "1ad9470c3730d830991d57e39d8fb1cc041471b933e1a03d72b13fbe11afde01"),
+            ["DEMO-005"] = new("Volkswagen Golf", "volkswagen-golf.png", "334698110e54154129a68f543de5a9ba085c3ba81b060699b4b7d3f8e233a5f7")
         };
 
-    public static bool ApplyIfMissing(Vehicle vehicle)
+    public static bool ApplyDefault(Vehicle vehicle)
     {
-        if (vehicle.ImageContent is { Length: > 0 } ||
-            !Catalog.TryGetValue(vehicle.Registration, out var asset) ||
+        if (!Catalog.TryGetValue(vehicle.Registration, out var asset) ||
             vehicle.MakeModel != asset.Model) return false;
+        // Upgrade only our exact previous default, preserving any custom image.
+        if (vehicle.ImageContent is { Length: > 0 } current &&
+            !Convert.ToHexString(SHA256.HashData(current)).Equals(asset.PreviousSha256, StringComparison.OrdinalIgnoreCase))
+            return false;
 
         using var stream = typeof(DemoVehicleImages).Assembly.GetManifestResourceStream(
             "FleetBooking.DemoVehicleImages." + asset.File)
@@ -37,12 +42,12 @@ public static class DemoVehicleImages
         return true;
     }
 
-    public static async Task AddMissingAsync(AppDbContext db)
+    public static async Task UpgradeAsync(AppDbContext db)
     {
-        var candidates = await db.Vehicles.Where(vehicle =>
-            vehicle.ImageContent == null || vehicle.ImageContent.Length == 0).ToListAsync();
+        var registrations = Catalog.Keys.ToArray();
+        var candidates = await db.Vehicles.Where(vehicle => registrations.Contains(vehicle.Registration)).ToListAsync();
         var changed = false;
-        foreach (var vehicle in candidates) changed |= ApplyIfMissing(vehicle);
+        foreach (var vehicle in candidates) changed |= ApplyDefault(vehicle);
         if (changed) await db.SaveChangesAsync();
     }
 }

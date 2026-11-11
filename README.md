@@ -45,7 +45,7 @@ The launcher builds the solution, starts the API on `https://localhost:58443/`, 
 
 The initial password is shared by these fictional demo accounts only. It is never included in the public package. Existing data and password hashes remain unchanged on subsequent starts. Bookings are seeded relative to the first run date; they do not move forward every day.
 
-All five vehicle illustrations are bundled in the API, so no external image service is required. Restarting an older demo installation adds missing images to its original demo vehicles. Existing custom images, accounts and bookings are preserved. These are AI-generated illustrations with blank plates, not photographs of business vehicles. See [image provenance and prompts](docs/IMAGES.md).
+All five vehicle illustrations are bundled transparent PNG cutouts, so no external image service is required. The desktop trims transparent margins when displaying them and uses more of each image cell to keep the vehicles readable. Restarting an older demo installation adds missing images and replaces only the exact previous bundled images with the new cutouts. Existing custom images, accounts and bookings are preserved. These are AI-generated illustrations with blank plates, not photographs of business vehicles. See [image provenance and prompts](docs/IMAGES.md).
 
 For API-only use, add `-NoClient` to the PowerShell command and press Ctrl+C when finished. API startup logs remain in the ignored `.local` folder. Desktop sessions and preferences live in `.local/client` beside the client executable.
 

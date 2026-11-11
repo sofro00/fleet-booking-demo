@@ -12,7 +12,7 @@ public static class DemoSeeder
     {
         if (await db.Users.AnyAsync())
         {
-            await DemoVehicleImages.AddMissingAsync(db);
+            await DemoVehicleImages.UpgradeAsync(db);
             return;
         }
         if (!PasswordPolicy.IsValid(password ?? ""))
@@ -44,7 +44,7 @@ public static class DemoSeeder
             Purpose = purpose, Destination = destination, DepartureLocation = "Podgorica", ContactPhone = "",
             PassengerCount = 1, Note = "Izmišljena demo rezervacija."
         };
-        foreach (var vehicle in vehicles) DemoVehicleImages.ApplyIfMissing(vehicle);
+        foreach (var vehicle in vehicles) DemoVehicleImages.ApplyDefault(vehicle);
         db.Users.AddRange(admin, ana, luka);
         db.Vehicles.AddRange(vehicles);
         db.Reservations.AddRange(

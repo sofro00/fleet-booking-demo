@@ -6,7 +6,7 @@ This edition was prepared as a separate source tree with new project names and c
 
 - All seeded accounts use the reserved `example.com` domain. Names are explicitly marked as demo identities.
 - Vehicle identifiers use `DEMO-` followed by three digits. There are no real registration plates in the demo seed.
-- The five bundled vehicle illustrations are AI-generated studio images with blank plates, not photographs from a company fleet. They were visually reviewed before inclusion; provenance and prompts are recorded in `docs/IMAGES.md`.
+- The five bundled vehicle illustrations are AI-generated transparent cutouts with blank plates, not photographs from a company fleet. They were visually reviewed before inclusion; provenance and prompts are recorded in `docs/IMAGES.md`.
 - Seeded accounts have no phone numbers. Seeded bookings contain no contact phone numbers.
 - Vehicles, bookings, destinations, maintenance, issue reports and audit entries are newly created examples; they are not transformed exports from a live database.
 - No initial password, JWT signing key or password hash is stored in the public configuration. The launcher generates its own local password; the API generates its signing key in memory on startup.
