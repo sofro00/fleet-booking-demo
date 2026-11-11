@@ -35,7 +35,7 @@ Then run **Pokreni demo.cmd**, or:
 powershell -NoProfile -ExecutionPolicy Bypass -File scripts/Start-Demo.ps1
 ```
 
-The launcher builds the solution, starts the API on `https://localhost:58443/`, opens the desktop client and stops its own API process after the client closes. It generates a random password locally. Read `.local/demo-access.txt` for access details:
+The launcher closes the previous desktop window and API from this exact checkout, builds the API and desktop projects, starts the API on `https://localhost:58443/`, opens the desktop client and stops its own API process after the client closes. It generates a random password locally. Read `.local/demo-access.txt` for access details:
 
 | Account | Role |
 | --- | --- |

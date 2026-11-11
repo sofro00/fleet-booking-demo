@@ -4,6 +4,7 @@ Verified on Windows on 11 November 2026 with .NET SDK 10.0.301 and local SQL Ser
 
 | Check | Result |
 | --- | --- |
+| Launcher restart regression | Passed: reproduced MSB3027 from an older running API; launcher now closes only processes from this checkout before building, starts HTTPS successfully and opens the desktop login |
 | Solution build | Passed, no warnings or errors |
 | API and business-rule tests with in-memory databases | 67 passed, including fresh image seeding and missing-image backfill without overwriting custom images |
 | Same suite with real SQL Server integration enabled | 67 passed |

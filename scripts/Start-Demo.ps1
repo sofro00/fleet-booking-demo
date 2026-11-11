@@ -18,19 +18,52 @@ $env:FLEET_Demo__Password = $demoPassword
 
 & dotnet dev-certs https --check --quiet
 if ($LASTEXITCODE -ne 0) { throw 'A local HTTPS certificate is required. Run: dotnet dev-certs https --trust' }
-& dotnet build FleetBooking.sln --nologo -v quiet
-if ($LASTEXITCODE -ne 0) { throw 'Build failed.' }
+# Serialize startup, but allow a later launch to restart an older demo.
+try {
+    $startupLock = [IO.File]::Open((Join-Path $localDir 'startup.lock'), 'OpenOrCreate', 'ReadWrite', 'None')
+} catch { throw 'Another demo startup is in progress. Wait for it to finish before trying again.' }
 $apiDll = Join-Path $demoRoot 'src\FleetBooking.Api\bin\Debug\net10.0\FleetBooking.Api.dll'
+$clientDll = Join-Path $demoRoot 'src\FleetBooking.Client\bin\Debug\net10.0-windows\FleetBooking.Client.dll'
 $apiProcess = $null
 try {
-    # Do not connect to or stop an unrelated process that occupies the demo port.
+    # Match exact executable/DLL paths inside this checkout, never process names alone.
+    $targets = @(
+        @{ Dll = $clientDll; Client = $true },
+        @{ Dll = $apiDll; Client = $false }
+    )
+    $processes = @(Get-CimInstance Win32_Process -Filter "Name='dotnet.exe' OR Name='FleetBooking.Client.exe' OR Name='FleetBooking.Api.exe'")
+    foreach ($target in $targets) {
+        $exe = [IO.Path]::ChangeExtension($target.Dll, '.exe')
+        $dllArgument = '(?i)(?:^|\s)"' + [regex]::Escape($target.Dll) + '"(?:\s|$)'
+        $unquotedArgument = '(?i)(?:^|\s)' + [regex]::Escape($target.Dll) + '(?:\s|$)'
+        foreach ($candidate in $processes) {
+            $isHost = [IO.Path]::GetFileName($candidate.ExecutablePath) -ieq 'dotnet.exe'
+            if ($candidate.ExecutablePath -ine $exe -and -not ($isHost -and
+                ($candidate.CommandLine -match $dllArgument -or $candidate.CommandLine -match $unquotedArgument))) { continue }
+            $running = Get-Process -Id $candidate.ProcessId -ErrorAction SilentlyContinue
+            if ($null -eq $running) { continue }
+            Write-Host 'Closing the previous instance of this demo...'
+            if ($target.Client) {
+                if (-not $running.CloseMainWindow() -or -not $running.WaitForExit(10000)) {
+                    throw 'Close the previous Fleet Booking Demo window, then run the launcher again.'
+                }
+            } else {
+                Stop-Process -Id $running.Id -ErrorAction Stop
+                $running.WaitForExit()
+            }
+        }
+    }
+    # Check before building; never stop an unrelated listener.
     $portCheck = New-Object System.Net.Sockets.TcpClient
     try {
         $portCheck.Connect('localhost', 58443)
-        throw 'Port 58443 is already in use. Stop the earlier demo before starting another copy.'
+        throw 'Port 58443 is occupied by another application. Free this port before starting the demo.'
     } catch [System.Net.Sockets.SocketException] {
-        # No listener: it is safe to start our own process.
     } finally { $portCheck.Dispose() }
+    foreach ($project in @('src\FleetBooking.Api\FleetBooking.Api.csproj', 'src\FleetBooking.Client\FleetBooking.Client.csproj')) {
+        & dotnet build $project --nologo -v quiet
+        if ($LASTEXITCODE -ne 0) { throw "Build failed for $project. See the compiler output above." }
+    }
     $apiProcess = Start-Process -FilePath 'dotnet' -ArgumentList @(('"' + $apiDll + '"')) -WorkingDirectory $demoRoot -WindowStyle Hidden -PassThru -RedirectStandardOutput (Join-Path $localDir 'api-output.log') -RedirectStandardError (Join-Path $localDir 'api-error.log')
     $ready = $false
     for ($attempt = 0; $attempt -lt 90; $attempt++) {
@@ -43,13 +76,16 @@ try {
     if (-not $ready) { throw 'The demo API did not become ready. Check local HTTPS trust and SQL Express availability.' }
     Write-Host 'Fleet Booking Demo is ready at https://localhost:58443/'
     Write-Host 'Local demo credentials: .local/demo-access.txt'
+    $startupLock.Dispose()
+    $startupLock = $null
     if ($NoClient) {
         Write-Host 'Press Ctrl+C to stop the demo API.'
         $apiProcess.WaitForExit()
     } else {
-        & dotnet (Join-Path $demoRoot 'src\FleetBooking.Client\bin\Debug\net10.0-windows\FleetBooking.Client.dll')
+        & dotnet $clientDll
     }
 } finally {
+    if ($null -ne $startupLock) { $startupLock.Dispose() }
     if ($null -ne $apiProcess -and -not $apiProcess.HasExited) { Stop-Process -Id $apiProcess.Id }
     Remove-Item Env:FLEET_Demo__Password -ErrorAction SilentlyContinue
 }
